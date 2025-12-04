@@ -71,6 +71,7 @@ class MetricsEvaluator:
         prefix: str | None = None,
         pdex_kwargs: dict[str, Any] | None = None,
         skip_de: bool = False,
+        convert_to_normlog: bool = True,
     ):
         # Enable a global string cache for categorical columns
         pl.enable_string_cache()
@@ -87,6 +88,7 @@ class MetricsEvaluator:
             control_pert=control_pert,
             pert_col=pert_col,
             allow_discrete=allow_discrete,
+            convert_to_normlog=convert_to_normlog,
         )
 
         if skip_de:
@@ -162,6 +164,7 @@ def _build_anndata_pair(
     control_pert: str,
     pert_col: str,
     allow_discrete: bool = False,
+    convert_to_normlog: bool = True,
 ):
     if isinstance(real, str):
         logger.info(f"Reading real anndata from {real}")
@@ -171,8 +174,9 @@ def _build_anndata_pair(
         pred = ad.read_h5ad(pred)
 
     # Validate that the input is normalized and log-transformed
-    _convert_to_normlog(real, which="real", allow_discrete=allow_discrete)
-    _convert_to_normlog(pred, which="pred", allow_discrete=allow_discrete)
+    if convert_to_normlog:
+        _convert_to_normlog(real, which="real", allow_discrete=allow_discrete)
+        _convert_to_normlog(pred, which="pred", allow_discrete=allow_discrete)
 
     # Build the anndata pair
     return PerturbationAnndataPair(
